@@ -1,0 +1,136 @@
+[build-system]
+requires = ["setuptools>=68", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "facebench"
+version = "0.1.0"
+description = "Unified benchmarking framework for comparative evaluation of deep face recognition models."
+readme = "README.md"
+license = { text = "MIT" }
+requires-python = ">=3.10"
+authors = [{ name = "FaceBench Contributors" }]
+keywords = [
+  "face-recognition",
+  "benchmarking",
+  "computer-vision",
+  "evaluation",
+]
+classifiers = [
+  "Development Status :: 3 - Alpha",
+  "Intended Audience :: Science/Research",
+  "License :: OSI Approved :: MIT License",
+  "Programming Language :: Python :: 3",
+  "Programming Language :: Python :: 3.10",
+  "Programming Language :: Python :: 3.11",
+  "Programming Language :: Python :: 3.12",
+  "Topic :: Scientific/Engineering :: Artificial Intelligence",
+]
+dependencies = [
+  "PyYAML>=6.0",
+  "psutil>=5.9",
+  "numpy>=1.24",
+]
+
+[project.optional-dependencies]
+dev = [
+  "pytest>=8.0",
+  "ruff>=0.6",
+  "black>=24.0",
+  "Pillow>=10.0",
+  "matplotlib>=3.7",
+]
+facenet = [
+  "torch>=2.0",
+  "torchvision>=0.15",
+  "facenet-pytorch>=2.5",
+  "Pillow>=10.0",
+]
+dlib = [
+  "dlib>=19.24",
+  "Pillow>=10.0",
+]
+buffalo = [
+  "insightface>=0.7",
+  "onnxruntime>=1.15",
+  "Pillow>=10.0",
+]
+adaface = [
+  "torch>=2.0",
+  "torchvision>=0.15",
+  "Pillow>=10.0",
+]
+magface = [
+  "torch>=2.0",
+  "torchvision>=0.15",
+  "Pillow>=10.0",
+]
+metrics = [
+  "psutil>=5.9",
+  "nvidia-ml-py>=12.0",
+]
+reports = [
+  "matplotlib>=3.7",
+  "seaborn>=0.13",
+  "Jinja2>=3.1",
+]
+models = [
+  "facebench[facenet]",
+  "facebench[dlib]",
+  "facebench[buffalo]",
+  "facebench[adaface]",
+  "facebench[magface]",
+]
+
+[project.scripts]
+facebench = "facebench.main:main"
+
+[project.urls]
+Documentation = "https://github.com/example/facebench"
+Source = "https://github.com/example/facebench"
+
+[tool.setuptools.packages.find]
+where = ["."]
+include = ["facebench*"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+pythonpath = ["."]
+addopts = "-q"
+
+[tool.black]
+line-length = 88
+target-version = ["py310"]
+include = '\.pyi?$'
+extend-exclude = '''
+/(
+  experiments
+)/
+'''
+
+[tool.ruff]
+line-length = 88
+target-version = "py310"
+extend-exclude = ["experiments"]
+
+[tool.ruff.lint]
+select = [
+  "E",   # pycodestyle errors
+  "F",   # pyflakes
+  "I",   # isort
+  "B",   # flake8-bugbear
+  "UP",  # pyupgrade
+  "N",   # pep8-naming
+  "D",   # pydocstyle
+]
+ignore = [
+  "D100",  # missing docstring in public module (packages use package docs)
+  "D104",  # missing docstring in public package
+]
+
+[tool.ruff.lint.pydocstyle]
+convention = "google"
+
+[tool.ruff.lint.per-file-ignores]
+"tests/**/*.py" = ["D"]
+"facebench/main.py" = ["D100"]

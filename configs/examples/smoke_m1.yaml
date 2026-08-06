@@ -1,0 +1,31 @@
+# Milestone M1 smoke configuration
+# Does not require local dataset files or model weights.
+
+experiment:
+  name: smoke_m1
+  output_dir: experiments
+  seed: 42
+
+device: cpu
+batch_size: 1
+
+dataset:
+  name: LFW
+  root_path: /data/datasets/lfw
+
+model:
+  name: buffalo_l
+
+matching:
+  method: cosine
+  threshold: 0.40
+
+evaluation:
+  mode: verification
+  aggregate_report: false
+
+robustness:
+  enabled: false
+
+scalability:
+  enabled: false

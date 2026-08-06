@@ -1,0 +1,32 @@
+# Expand datasets: all using dataset_roots (paths are placeholders).
+
+experiment:
+  name: batch_all_skeleton
+  output_dir: experiments
+  seed: 42
+
+device: cpu
+batch_size: 8
+
+datasets: all
+
+dataset_roots:
+  LFW: /data/datasets/lfw
+  CFP-FP: /data/datasets/cfp-fp
+  CPLFW: /data/datasets/cplfw
+  AgeDB-30: /data/datasets/agedb
+  TinyFace: /data/datasets/tinyface
+  AR-Face: /data/datasets/ar_face
+  ChokePoint: /data/datasets/chokepoint
+  YTF: /data/datasets/ytf
+
+models:
+  - name: buffalo_l
+
+matching:
+  method: cosine
+  threshold: 0.40
+
+evaluation:
+  mode: verification
+  aggregate_report: true

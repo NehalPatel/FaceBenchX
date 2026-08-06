@@ -1,0 +1,25 @@
+# CLI smoke config — pair with: facebench run --config ... --allow-stub --max-pairs 8
+
+experiment:
+  name: cli_smoke_stub
+  output_dir: experiments
+  seed: 42
+
+device: cpu
+batch_size: 1
+
+dataset:
+  name: LFW
+  root_path: /data/datasets/lfw
+
+model:
+  name: facenet
+
+matching:
+  method: cosine
+  threshold: 0.40
+
+evaluation:
+  mode: verification
+  aggregate_report: true
+  max_pairs: 8

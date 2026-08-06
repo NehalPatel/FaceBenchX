@@ -1,0 +1,29 @@
+# Example multi-dataset config skeleton (paths are placeholders).
+
+experiment:
+  name: batch_pose_age_skeleton
+  output_dir: experiments
+  seed: 42
+
+device: cpu
+batch_size: 8
+
+datasets:
+  - name: CFP-FP
+    root_path: /data/datasets/cfp-fp
+  - name: CPLFW
+    root_path: /data/datasets/cplfw
+  - name: AgeDB-30
+    root_path: /data/datasets/agedb
+
+models:
+  - name: buffalo_l
+  - name: adaface
+
+matching:
+  method: cosine
+  threshold: 0.40
+
+evaluation:
+  mode: verification
+  aggregate_report: true

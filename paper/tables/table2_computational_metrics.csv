@@ -1,0 +1,8 @@
+Metric,Value,Unit
+model_load_time_s,2.946533,s
+avg_embedding_time_s,0.558492,s
+throughput_fps,1.790536,FPS
+cpu_percent,254.2281,%
+ram_rss_mb,626.9648,MiB
+model_size_mb,600.7100,MiB
+num_samples,11998,embeddings

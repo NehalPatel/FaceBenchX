@@ -1,0 +1,28 @@
+# Scalability ladder on a public gallery. Paths are placeholders.
+
+experiment:
+  name: scalability_lfw_example
+  output_dir: experiments
+  seed: 42
+
+device: cpu
+batch_size: 8
+
+dataset:
+  name: LFW
+  root_path: /data/datasets/lfw
+
+model:
+  name: buffalo_l
+
+matching:
+  method: cosine
+  threshold: 0.40
+
+evaluation:
+  mode: identification
+  aggregate_report: false
+
+scalability:
+  enabled: true
+  identity_counts: [10, 100, 500, 1000, 5000]

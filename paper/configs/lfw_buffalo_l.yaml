@@ -1,0 +1,37 @@
+# Locked paper experiment: LFW verification with Buffalo-L
+#
+# Template with placeholder paths. For a real run, copy to
+# paper/configs/local/lfw_buffalo_l.yaml and set local absolute paths.
+# (paper/configs/local/ is gitignored.)
+
+experiment:
+  name: paper_lfw_buffalo_l
+  output_dir: experiments
+  seed: 42
+
+device: cpu          # use cuda:0 when GPU ORT is available
+batch_size: 1
+
+dataset:
+  name: LFW
+  root_path: /data/datasets/lfw   # must point at identity folders + pairs.txt
+
+model:
+  name: buffalo_l
+  weights_path: /data/weights/insightface   # InsightFace root (contains models/buffalo_l)
+
+matching:
+  method: cosine
+  threshold: 0.40
+
+evaluation:
+  mode: verification
+  aggregate_report: false
+  # Uncomment for a short debug pass before the full 6000-pair run:
+  # max_pairs: 100
+
+robustness:
+  enabled: false
+
+scalability:
+  enabled: false

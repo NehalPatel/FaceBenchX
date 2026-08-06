@@ -1,0 +1,35 @@
+# Synthetic robustness on a public base (typically LFW). Paths are placeholders.
+
+experiment:
+  name: robustness_lfw_example
+  output_dir: experiments
+  seed: 42
+
+device: cpu
+batch_size: 8
+
+dataset:
+  name: LFW
+  root_path: /data/datasets/lfw
+
+model:
+  name: buffalo_l
+
+matching:
+  method: cosine
+  threshold: 0.40
+
+evaluation:
+  mode: verification
+  compute_metrics: true
+
+robustness:
+  enabled: true
+  transforms:
+    - blur
+    - gaussian_noise
+    - jpeg
+    - low_illumination
+    - bright_illumination
+    - rotation
+    - low_resolution
