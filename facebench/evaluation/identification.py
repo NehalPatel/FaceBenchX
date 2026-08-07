@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import time
+from collections.abc import Callable
 from typing import Any
 
 import numpy as np
@@ -11,6 +12,9 @@ from facebench.datasets.types import Sample
 from facebench.evaluation.types import IdentificationResult
 from facebench.matcher.base import BaseMatcher
 from facebench.metrics.computational import ComputeProfiler
+from facebench.models.imaging import load_image_rgb
+
+ImageTransform = Callable[[np.ndarray], np.ndarray]
 
 
 def run_identification(
@@ -21,6 +25,7 @@ def run_identification(
     profiler: ComputeProfiler | None = None,
     *,
     ranks: tuple[int, ...] = (1, 5, 10),
+    image_transform: ImageTransform | None = None,
 ) -> IdentificationResult:
     """Embed gallery/probe sets and compute rank-k identification metrics.
 
@@ -31,6 +36,7 @@ def run_identification(
         matcher: Similarity matcher (higher score = more similar).
         profiler: Optional profiler; embedding calls are tracked when set.
         ranks: Rank cutoffs for the cumulative match characteristic (CMC).
+        image_transform: Optional RGB ndarray transform (Baseline B align).
 
     Returns:
         :class:`IdentificationResult`.
@@ -43,7 +49,10 @@ def run_identification(
     if not probe:
         raise ValueError("Identification requires a non-empty probe set")
 
-    gallery_embs = [_timed_embed(model, sample.path, profiler) for sample in gallery]
+    gallery_embs = [
+        _timed_embed(model, sample.path, profiler, image_transform)
+        for sample in gallery
+    ]
     gallery_ids = [sample.identity for sample in gallery]
     identities = sorted({sample.identity for sample in gallery})
 
@@ -53,7 +62,7 @@ def run_identification(
 
     for sample in probe:
         start = time.perf_counter()
-        query = _timed_embed(model, sample.path, profiler)
+        query = _timed_embed(model, sample.path, profiler, image_transform)
         scores = np.asarray(
             [float(matcher.score(query, emb)) for emb in gallery_embs],
             dtype=np.float64,
@@ -86,8 +95,16 @@ def _timed_embed(
     model: Any,
     path: Any,
     profiler: ComputeProfiler | None,
+    image_transform: ImageTransform | None = None,
 ) -> Any:
-    """Embed a path, optionally recording embedding time."""
+    """Embed a path, optionally aligning then recording embedding time."""
+
+    def _call() -> Any:
+        if image_transform is None:
+            return model.generate_embedding(path)
+        image = load_image_rgb(path)
+        return model.generate_embedding(image_transform(image))
+
     if profiler is None:
-        return model.generate_embedding(path)
-    return profiler.track_embedding(lambda p=path: model.generate_embedding(p))
+        return _call()
+    return profiler.track_embedding(_call)

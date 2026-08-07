@@ -1,0 +1,2 @@
+experiment_dir=D:\ModelComparision\experiments\20260806T192706Z_paper_lfw_five_models_baseline_b_f86260f8
+manifest=D:\ModelComparision\experiments\20260806T192706Z_paper_lfw_five_models_baseline_b_f86260f8\manifest.json

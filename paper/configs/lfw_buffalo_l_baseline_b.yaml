@@ -1,0 +1,46 @@
+﻿# Locked paper experiment: LFW x Buffalo-L under Baseline B
+#
+# Shared RetinaFace/SCRFD detect -> face-centric crop -> Buffalo-L embed.
+# crop_mode: bbox_margin keeps enough context for vendor re-detect while
+# recognition adapters remain unchanged. Copy to paper/configs/local/.
+
+experiment:
+  name: paper_lfw_buffalo_l_baseline_b
+  output_dir: experiments
+  seed: 42
+
+device: cpu
+batch_size: 1
+
+dataset:
+  name: LFW
+  root_path: /data/datasets/lfw
+
+model:
+  name: buffalo_l
+  weights_path: /data/weights/insightface
+
+matching:
+  method: cosine
+  threshold: 0.40
+
+detection:
+  backend: retinaface
+  output_size: 112
+  det_size: [640, 640]
+  model_name: buffalo_l
+  weights_path: /data/weights/insightface
+  crop_mode: bbox_margin
+  bbox_margin: 0.35
+  skip_failed: true
+
+evaluation:
+  mode: verification
+  aggregate_report: false
+  max_pairs: 500
+
+robustness:
+  enabled: false
+
+scalability:
+  enabled: false

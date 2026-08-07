@@ -52,8 +52,12 @@ dlib = [
 ]
 buffalo = [
   "insightface>=0.7",
-  "onnxruntime>=1.15",
+  "onnxruntime-gpu>=1.15; platform_system != 'Darwin'",
+  "onnxruntime>=1.15; platform_system == 'Darwin'",
   "Pillow>=10.0",
+]
+align = [
+  "facebench[buffalo]",
 ]
 adaface = [
   "torch>=2.0",

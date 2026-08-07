@@ -1,0 +1,46 @@
+{
+  "timestamp": "2026-08-06T19:06:12.037219+00:00",
+  "max_pairs_requested": 200,
+  "pairs_loaded": 200,
+  "threshold": 0.4,
+  "device": "cuda:0",
+  "tolerance": {
+    "accuracy": 0.015,
+    "auc": 0.015,
+    "eer": 0.02
+  },
+  "baseline_a": {
+    "accuracy": 0.995,
+    "auc": 0.9928999999999999,
+    "eer": 0.010000000000000005,
+    "num_pairs": 200,
+    "skipped": 0,
+    "seconds": 23.06805330000134
+  },
+  "baseline_b": {
+    "accuracy": 0.995,
+    "auc": 0.9924999999999999,
+    "eer": 0.010000000000000005,
+    "num_pairs": 200,
+    "skipped": 0,
+    "seconds": 35.94519939999918
+  },
+  "delta_abs": {
+    "accuracy": 0.0,
+    "auc": 0.00039999999999995595,
+    "eer": 0.0
+  },
+  "pass": {
+    "accuracy": true,
+    "auc": true,
+    "eer": true,
+    "overall": true
+  },
+  "published_baseline_a_reference": {
+    "experiment_id": "20260805T203632Z_paper_lfw_buffalo_l_f2e9f94c",
+    "accuracy": 0.9817,
+    "auc": 0.9892,
+    "eer": 0.0238
+  },
+  "notes": "Adapters unchanged: Baseline B feeds shared 112 crops into Buffalo-L which still runs vendor FaceAnalysis on the crop."
+}

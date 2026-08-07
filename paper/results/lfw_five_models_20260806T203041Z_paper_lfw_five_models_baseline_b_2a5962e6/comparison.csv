@@ -1,0 +1,2 @@
+dataset_name,model_name,accuracy,f1,auc,eer,avg_embedding_time_s,throughput_fps,cpu_percent,ram_rss_mb,gpu_percent,gpu_memory_mb
+LFW,magface,0.8863712655253441,0.8788692073716229,0.9514548862712486,0.1079222212644115,2.501433349086398e-07,3997707.9555816725,0.02422268542643738,3167.203125,,

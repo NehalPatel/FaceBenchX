@@ -1,19 +1,22 @@
 """Shared face detection and alignment utilities.
 
-Phase 9 provides a minimal shared RGB load/align stage so models and
-synthetic robustness transforms operate on a consistent image view.
-Heavy detector backends can replace :class:`PassthroughAligner` later.
+Baseline A uses no shared aligner (or :class:`PassthroughAligner`).
+Baseline B uses :class:`~facebench.detection.retinaface.RetinaFaceAligner`.
 """
 
 from __future__ import annotations
 
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Any
+from typing import Any, Protocol, runtime_checkable
 
 import numpy as np
 
 from facebench.models.imaging import ImageInput, load_image_rgb
+
+
+class FaceDetectionError(RuntimeError):
+    """Raised when a shared detector finds no usable face."""
 
 
 @dataclass(slots=True)
@@ -29,6 +32,16 @@ class AlignedFace:
     image: np.ndarray
     source: str
     metadata: dict[str, Any]
+
+
+@runtime_checkable
+class BaseAligner(Protocol):
+    """Protocol for shared face aligners."""
+
+    name: str
+
+    def align(self, image: ImageInput) -> AlignedFace:
+        """Detect/align ``image`` and return an :class:`AlignedFace` crop."""
 
 
 class PassthroughAligner:
@@ -50,9 +63,29 @@ class PassthroughAligner:
             source = str(Path(image).expanduser().resolve())
         else:
             source = "ndarray"
-        return AlignedFace(image=array, source=source, metadata={"aligner": self.name})
+        return AlignedFace(
+            image=array,
+            source=source,
+            metadata={"aligner": self.name},
+        )
 
 
 def get_default_aligner() -> PassthroughAligner:
-    """Return the default shared aligner used by benchmark execution."""
+    """Return the default shared aligner used by optional hooks/tests."""
     return PassthroughAligner()
+
+
+def as_image_transform(aligner: BaseAligner):
+    """Wrap an aligner as an RGB→RGB callable for evaluation hooks.
+
+    Args:
+        aligner: Shared aligner instance.
+
+    Returns:
+        Callable ``(rgb: ndarray) -> ndarray`` returning the aligned crop.
+    """
+
+    def _transform(image_rgb: np.ndarray) -> np.ndarray:
+        return aligner.align(image_rgb).image
+
+    return _transform

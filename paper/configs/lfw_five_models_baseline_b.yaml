@@ -1,0 +1,55 @@
+# Locked paper experiment: LFW x five models under Baseline B
+#
+# Shared RetinaFace/SCRFD detect -> bbox_margin crop -> model embed.
+# Recognition adapters are unchanged. Copy to paper/configs/local/ and
+# fill machine-specific paths before running.
+
+experiment:
+  name: paper_lfw_five_models_baseline_b
+  output_dir: experiments
+  seed: 42
+
+device: cuda:0
+batch_size: 1
+
+dataset:
+  name: LFW
+  root_path: /data/datasets/lfw
+
+matching:
+  method: cosine
+  threshold: 0.40
+
+detection:
+  backend: retinaface
+  output_size: 112
+  det_size: [640, 640]
+  model_name: buffalo_l
+  weights_path: /data/weights/insightface
+  crop_mode: bbox_margin
+  bbox_margin: 0.35
+  skip_failed: true
+
+evaluation:
+  mode: verification
+  aggregate_report: true
+  # Full View-2 (6000 pairs). Override with --max-pairs for smoke tests.
+  max_pairs: null
+
+robustness:
+  enabled: false
+
+scalability:
+  enabled: false
+
+models:
+  - name: facenet
+    weights_path: null
+  - name: dlib
+    weights_dir: /data/weights/dlib
+  - name: buffalo_l
+    weights_path: /data/weights/insightface
+  - name: adaface
+    weights_path: /data/weights/adaface/adaface_ir50_ms1mv2.ckpt
+  - name: magface
+    weights_path: /data/weights/magface/magface_iresnet50_ms1mv2.pth

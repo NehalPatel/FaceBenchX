@@ -1,0 +1,1 @@
+"""Paper packaging package marker."""

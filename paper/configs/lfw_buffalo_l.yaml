@@ -3,6 +3,8 @@
 # Template with placeholder paths. For a real run, copy to
 # paper/configs/local/lfw_buffalo_l.yaml and set local absolute paths.
 # (paper/configs/local/ is gitignored.)
+#
+# Baseline A: detection.backend = none (vendor detect inside Buffalo-L).
 
 experiment:
   name: paper_lfw_buffalo_l
@@ -23,6 +25,10 @@ model:
 matching:
   method: cosine
   threshold: 0.40
+
+detection:
+  backend: none
+  skip_failed: true
 
 evaluation:
   mode: verification

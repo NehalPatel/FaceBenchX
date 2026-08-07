@@ -1,1 +1,10 @@
-﻿#4c06341c33c2ca1f86781dab0e829f88ad5b64be9fba56e56bc9ebdefc619e43  buffalo_l/w600k_r50.onnx
+# FaceBench paper weight checksums (Baseline B five-model LFW)
+# generated_utc=2026-08-06T20:38:19.553873+00:00
+# experiment_id=20260806T192706Z_paper_lfw_five_models_baseline_b_f86260f8
+
+c4b1e9804792707d3a405c2c16a80a20269e6675021f64a41d30fffafbc41888  shape_predictor_5_face_landmarks.dat
+55533b28a95800a551ba546ba62fe69625c7e95a7061c338adffead08719da30  dlib_face_recognition_resnet_model_v1.dat
+4c06341c33c2ca1f86781dab0e829f88ad5b64be9fba56e56bc9ebdefc619e43  w600k_r50.onnx
+234da6ce931f821e0a8e920063dc2091d8122ea46285c159d2f25d3f762fecb3  adaface_ir50_ms1mv2.ckpt
+4e0611e0267a157bd9f6c4d034b424271515a8cac49e5f3cb98d3daf558403e7  magface_iresnet50_ms1mv2.pth
+# facenet: facenet-pytorch InceptionResnetV1 pretrained=vggface2 (auto)

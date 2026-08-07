@@ -9,6 +9,7 @@ from typing import Any
 
 from facebench.core.experiment_manager import ExperimentManager, ExperimentRecord
 from facebench.datasets.factory import DatasetFactory
+from facebench.detection import as_image_transform, create_aligner
 from facebench.evaluation import (
     run_identification,
     run_robustness_suite,
@@ -144,8 +145,26 @@ class ExperimentOrchestrator:
         mode = str(eval_cfg.get("mode", "verification")).lower()
         robustness_cfg = config.get("robustness") or {}
         scalability_cfg = config.get("scalability") or {}
+        detection_cfg = config.get("detection") or {}
         seed = int(config.get("experiment", {}).get("seed", 42))
 
+        aligner = create_aligner(detection_cfg, device=device)
+        image_transform = None
+        transform_name = None
+        if aligner is not None:
+            if hasattr(aligner, "load"):
+                aligner.load(device)  # type: ignore[attr-defined]
+            image_transform = as_image_transform(aligner)
+            transform_name = aligner.name
+            self._logger.info(
+                "Shared detection backend=%s (Baseline %s)",
+                aligner.name,
+                "B" if aligner.name == "retinaface" else "shared",
+            )
+        else:
+            self._logger.info("Shared detection backend=none (Baseline A)")
+
+        skip_failed = bool(detection_cfg.get("skip_failed", True))
         reports: list[ExperimentReportData] = []
         report_root = ReportGenerator(output_dir)
 
@@ -213,12 +232,21 @@ class ExperimentOrchestrator:
                         profiler,
                         threshold=threshold_f,
                         metrics=self._metrics,
+                        image_transform=image_transform,
+                        transform_name=transform_name,
+                        skip_failed_detections=skip_failed,
                     )
                     recognition = verification.recognition
                     computational = verification.computational
                     labels = verification.labels
                     scores = verification.scores
                     extra["verification"] = verification.to_dict()
+                    extra["detection"] = {
+                        "backend": detection_cfg.get("backend", "none"),
+                        "shared_align": image_transform is not None,
+                        "aligner": transform_name,
+                        "skip_failed": skip_failed,
+                    }
                     self._write_json(
                         combo_dir / "metrics" / "verification.json",
                         verification.to_dict(),
@@ -232,9 +260,15 @@ class ExperimentOrchestrator:
                         recognizer,
                         matcher,
                         profiler,
+                        image_transform=image_transform,
                     )
                     computational = profiler.summarize()
                     extra["identification"] = identification.to_dict()
+                    extra["detection"] = {
+                        "backend": detection_cfg.get("backend", "none"),
+                        "shared_align": image_transform is not None,
+                        "aligner": transform_name,
+                    }
                     notes = (
                         f"Identification rank-1={identification.rank1_accuracy:.4f} "
                         f"gallery={identification.num_gallery} "

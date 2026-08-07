@@ -9,6 +9,7 @@ from typing import Any
 import numpy as np
 
 from facebench.datasets.types import IdentityPair
+from facebench.detection.align import FaceDetectionError
 from facebench.evaluation.types import VerificationResult
 from facebench.matcher.base import BaseMatcher
 from facebench.metrics import MetricCalculator
@@ -28,6 +29,7 @@ def run_verification(
     metrics: MetricCalculator | None = None,
     image_transform: ImageTransform | None = None,
     transform_name: str | None = None,
+    skip_failed_detections: bool = False,
 ) -> VerificationResult:
     """Score identity pairs and compute recognition + compute metrics.
 
@@ -40,12 +42,16 @@ def run_verification(
         metrics: Metric calculator facade; created if omitted.
         image_transform: Optional RGB ndarray transform applied before embed.
         transform_name: Label stored on the result (e.g. ``blur``).
+        skip_failed_detections: When ``True``, skip pairs where embedding
+            fails due to missed face detection instead of aborting.
 
     Returns:
         :class:`VerificationResult`.
 
     Raises:
-        ValueError: If ``pairs`` is empty.
+        ValueError: If ``pairs`` is empty, or if every pair is skipped.
+        FaceDetectionError / RuntimeError: On detection failure when
+            ``skip_failed_detections`` is ``False``.
     """
     if not pairs:
         raise ValueError("Verification requires at least one identity pair")
@@ -53,30 +59,55 @@ def run_verification(
     calc = metrics or MetricCalculator()
     labels: list[int] = []
     scores: list[float] = []
+    skipped = 0
 
     for pair in pairs:
-        emb_a = profiler.track_embedding(
-            lambda p=pair.sample_a.path: _embed(model, p, image_transform)
-        )
-        emb_b = profiler.track_embedding(
-            lambda p=pair.sample_b.path: _embed(model, p, image_transform)
-        )
+        try:
+            emb_a = profiler.track_embedding(
+                lambda p=pair.sample_a.path: _embed(model, p, image_transform)
+            )
+            emb_b = profiler.track_embedding(
+                lambda p=pair.sample_b.path: _embed(model, p, image_transform)
+            )
+        except Exception as exc:
+            if skip_failed_detections and _is_detection_failure(exc):
+                skipped += 1
+                continue
+            raise
         scores.append(float(matcher.score(emb_a, emb_b)))
         labels.append(1 if pair.issame else 0)
+
+    if not labels:
+        raise ValueError(
+            "Verification produced no scored pairs "
+            f"(skipped_failed_detections={skipped})"
+        )
 
     recognition = calc.recognition(
         np.asarray(labels),
         np.asarray(scores, dtype=np.float64),
         threshold=threshold,
     )
-    return VerificationResult(
+    result = VerificationResult(
         recognition=recognition,
         computational=profiler.summarize(),
         labels=labels,
         scores=scores,
-        num_pairs=len(pairs),
+        num_pairs=len(labels),
         transform=transform_name,
     )
+    if skipped:
+        result.extra["skipped_failed_detections"] = skipped
+        result.extra["pairs_requested"] = len(pairs)
+    return result
+
+
+def _is_detection_failure(exc: BaseException) -> bool:
+    """Return True for shared/vendor missed-face errors."""
+    if isinstance(exc, FaceDetectionError):
+        return True
+    message = str(exc).lower()
+    return "no face" in message or "detected no faces" in message
 
 
 def _embed(

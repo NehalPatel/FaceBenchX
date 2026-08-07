@@ -150,6 +150,9 @@ class ConfigLoader:
         normalized["scalability"] = self._normalize_scalability(
             normalized.get("scalability")
         )
+        normalized["detection"] = self._normalize_detection(
+            normalized.get("detection")
+        )
 
         normalized["_meta"] = {
             "source_path": str(source_path) if source_path else None,
@@ -266,6 +269,88 @@ class ConfigLoader:
         entry = dict(item)
         entry["name"] = name
         return entry
+
+    @staticmethod
+    def _normalize_detection(value: Any) -> dict[str, Any]:
+        """Normalize optional shared detection / alignment configuration.
+
+        Default ``backend: none`` preserves Baseline A (vendor/path embed).
+        ``backend: retinaface`` enables Baseline B shared crops.
+        """
+        if value is None:
+            return {
+                "backend": "none",
+                "output_size": 112,
+                "det_size": [640, 640],
+                "model_name": "buffalo_l",
+                "weights_path": None,
+                "skip_failed": True,
+                "crop_mode": "bbox_margin",
+                "bbox_margin": 0.35,
+            }
+        if not isinstance(value, dict):
+            raise ConfigError("'detection' must be a mapping when provided")
+
+        backend = str(value.get("backend", "none")).strip().lower() or "none"
+        allowed = {
+            "none",
+            "off",
+            "disabled",
+            "passthrough",
+            "identity",
+            "retinaface",
+            "scrfd",
+            "insightface",
+            "insightface_scrfd",
+        }
+        if backend not in allowed:
+            raise ConfigError(
+                "detection.backend must be one of "
+                "none|passthrough|retinaface, "
+                f"got {backend!r}"
+            )
+
+        output_size = int(value.get("output_size", 112))
+        if output_size < 32:
+            raise ConfigError("detection.output_size must be >= 32")
+
+        det_size = value.get("det_size", [640, 640])
+        if not isinstance(det_size, (list, tuple)) or len(det_size) != 2:
+            raise ConfigError("detection.det_size must be a [H, W] pair")
+        det_h, det_w = int(det_size[0]), int(det_size[1])
+        if det_h < 32 or det_w < 32:
+            raise ConfigError("detection.det_size entries must be >= 32")
+
+        weights_path = value.get("weights_path")
+        if weights_path is not None:
+            weights_path = str(weights_path)
+
+        crop_mode = str(value.get("crop_mode", "bbox_margin")).strip().lower()
+        crop_mode = crop_mode.replace("-", "_")
+        if crop_mode in {"bbox", "margin", "padded", "bbox_padded"}:
+            crop_mode = "bbox_margin"
+        if crop_mode in {"norm", "aligned", "arcface", "112"}:
+            crop_mode = "norm_112"
+        if crop_mode not in {"bbox_margin", "norm_112"}:
+            raise ConfigError(
+                "detection.crop_mode must be 'bbox_margin' or 'norm_112', "
+                f"got {crop_mode!r}"
+            )
+
+        bbox_margin = float(value.get("bbox_margin", 0.35))
+        if bbox_margin < 0.0 or bbox_margin > 2.0:
+            raise ConfigError("detection.bbox_margin must be in [0, 2]")
+
+        return {
+            "backend": backend,
+            "output_size": output_size,
+            "det_size": [det_h, det_w],
+            "model_name": str(value.get("model_name", "buffalo_l")),
+            "weights_path": weights_path,
+            "skip_failed": bool(value.get("skip_failed", True)),
+            "crop_mode": crop_mode,
+            "bbox_margin": bbox_margin,
+        }
 
     @staticmethod
     def _normalize_robustness(value: Any) -> dict[str, Any]:
